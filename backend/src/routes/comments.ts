@@ -12,7 +12,7 @@ publicRouter.get('/post/:slug', (req, res) => {
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
     const comments = db.prepare(
-      `SELECT id, author_name, content, created_at
+      `SELECT id, author_name, content, image_url, created_at
        FROM comments
        WHERE post_id = ? AND status = 'approved'
        ORDER BY created_at DESC`
@@ -23,17 +23,17 @@ publicRouter.get('/post/:slug', (req, res) => {
   }
 });
 
-// PUBLIC: Submit a comment
+// PUBLIC: Submit a comment (with optional image)
 publicRouter.post('/', (req, res) => {
-  const { post_id, author_name, content } = req.body;
+  const { post_id, author_name, content, image_url } = req.body;
   if (!post_id || !author_name || !content) {
     return res.status(400).json({ message: 'post_id, author_name, and content are required' });
   }
   const db = getDb();
   try {
     const result = db.prepare(
-      'INSERT INTO comments (post_id, author_name, content, status) VALUES (?, ?, ?, ?)'
-    ).run(post_id, author_name, content, 'pending');
+      'INSERT INTO comments (post_id, author_name, content, image_url, status) VALUES (?, ?, ?, ?, ?)'
+    ).run(post_id, author_name, content, image_url || null, 'pending');
     res.status(201).json({ id: result.lastInsertRowid, message: 'Comment submitted for review' });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });

@@ -55,10 +55,18 @@ function initDb() {
       post_id INTEGER,
       author_name TEXT,
       content TEXT,
+      image_url TEXT,
       status TEXT DEFAULT 'pending',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
     );
   `);
+    // Add image_url column if missing (migration for existing DBs)
+    try {
+        db.exec('ALTER TABLE comments ADD COLUMN image_url TEXT');
+    }
+    catch (e) {
+        // Column already exists — ignore
+    }
     console.log('Database initialized');
 }

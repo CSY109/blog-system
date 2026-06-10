@@ -52,6 +52,7 @@ export interface Comment {
   post_slug?: string;
   author_name: string;
   content: string;
+  image_url?: string;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 }

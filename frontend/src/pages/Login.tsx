@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -16,7 +16,7 @@ const Login = () => {
     try {
       await login({ username, password });
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Login failed');
+      setError(err.response?.data?.message || err.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
@@ -27,33 +27,47 @@ const Login = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
-      {error && <div className="form-error">{error}</div>}
-      <div>
-        <label htmlFor="username">Username</label>
-        <input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-header">
+          <Link to="/" className="login-logo">◆ DevBlog</Link>
+          <h1>Welcome back</h1>
+          <p>Sign in to manage your blog.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="login-form">
+          {error && <div className="form-error">{error}</div>}
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="admin"
+              autoFocus
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            {loading ? 'Signing in…' : 'Sign In'}
+          </button>
+        </form>
+        <p className="login-footer">
+          <Link to="/">← Back to Home</Link>
+        </p>
       </div>
-      <div>
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <button type="submit" disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
-      </button>
-    </form>
+    </div>
   );
 };
 
