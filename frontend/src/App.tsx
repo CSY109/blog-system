@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import PostDetails from './pages/PostDetails';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import MyPosts from './pages/MyPosts';
 import Dashboard from './pages/admin/Dashboard';
 import Posts from './pages/admin/Posts';
 import PostCreate from './pages/admin/PostCreate';
@@ -29,6 +30,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/new-post" element={<PostCreate />} />
           <Route path="/edit-post/:id" element={<PostEdit />} />
+          <Route path="/my-posts" element={<MyPosts />} />
         </Route>
       </Route>
 

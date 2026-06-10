@@ -9,7 +9,7 @@ const PostCreate = () => {
 
   const handleSubmit = async (postData: any) => {
     await createPost(postData);
-    navigate(isAdmin ? '/admin/posts' : '/');
+    navigate(isAdmin ? '/admin/posts' : '/my-posts');
   };
 
   return (

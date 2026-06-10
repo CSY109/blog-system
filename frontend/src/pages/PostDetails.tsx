@@ -157,6 +157,12 @@ const PostDetails = () => {
       <Link to="/" className="back-link">← Back to articles</Link>
 
       <article className="post-detail-article">
+        {/* Cover banner */}
+        {post.cover_image && (
+          <div className="post-cover-banner">
+            <img src={post.cover_image} alt={post.title} />
+          </div>
+        )}
         <header className="post-detail-header">
           <div className="post-detail-badge">Article</div>
           <h1>{post.title}</h1>

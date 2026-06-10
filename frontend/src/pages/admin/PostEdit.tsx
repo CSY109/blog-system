@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PostForm from '../../components/PostForm';
-import { getAdminPosts, updatePost, type Post } from '../../services/api';
+import { getPostForEdit, updatePost, type Post } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 
 const PostEdit = () => {
@@ -16,12 +16,11 @@ const PostEdit = () => {
     if (!id) return;
     (async () => {
       try {
-        const response = await getAdminPosts(undefined, 1, 100);
-        const found = response.data.data.find((p) => p.id === parseInt(id, 10));
-        if (found) setPost(found);
-        else setError('Post not found.');
-      } catch (err) {
-        setError('Failed to fetch post.');
+        const response = await getPostForEdit(parseInt(id, 10));
+        setPost(response.data);
+      } catch (err: any) {
+        if (err.response?.status === 403) setError('You can only edit your own posts.');
+        else setError('Failed to fetch post.');
       } finally {
         setLoading(false);
       }
@@ -31,7 +30,7 @@ const PostEdit = () => {
   const handleSubmit = async (postData: any) => {
     if (!id) return;
     await updatePost(parseInt(id, 10), postData);
-    navigate(isAdmin ? '/admin/posts' : '/');
+    navigate(isAdmin ? '/admin/posts' : '/my-posts');
   };
 
   if (loading) return <div className="page-loading">Loading...</div>;

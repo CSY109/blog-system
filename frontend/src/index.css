@@ -426,6 +426,21 @@ mark.search-highlight {
 }
 .back-link:hover { opacity: 0.7; text-decoration: none; }
 
+/* Cover banner */
+.post-cover-banner {
+  width: 100%;
+  max-height: 360px;
+  overflow: hidden;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.post-cover-banner img {
+  width: 100%;
+  height: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
 /* Article */
 .post-detail-article {
   background: var(--color-surface);

@@ -101,12 +101,17 @@ export const logout = () => {
 export const getPosts = (search?: string, page = 1, limit = 10) =>
   api.get<PaginatedResponse<Post>>('/posts', { params: { search, page, limit } });
 
+export const getMyPosts = (search?: string, page = 1, limit = 10) =>
+  api.get<PaginatedResponse<Post>>('/posts/my/all', { params: { search, page, limit } });
+
 export const getAdminPosts = (search?: string, page = 1, limit = 10) =>
-  api.get<PaginatedResponse<Post>>('/posts/admin', { params: { search, page, limit } });
+  api.get<PaginatedResponse<Post>>('/posts/admin/all', { params: { search, page, limit } });
+
+export const getPostForEdit = (id: number) => api.get<Post>(`/posts/edit/${id}`);
 
 export const getPostBySlug = (slug: string) => api.get<Post>(`/posts/${slug}`);
 
-export const createPost = (post: Omit<Post, 'id' | 'created_at' | 'updated_at'>) =>
+export const createPost = (post: Omit<Post, 'id' | 'created_at' | 'updated_at'> & { cover_image?: string }) =>
   api.post('/posts', post);
 
 export const updatePost = (id: number, post: Partial<Post>) =>
