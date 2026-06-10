@@ -1,31 +1,42 @@
 import { Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
+import AppLayout from './components/AppLayout';
+import AdminLayout from './components/AdminLayout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import PostDetails from './pages/PostDetails';
 import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
-import CreatePost from './pages/CreatePost';
-import EditPost from './pages/EditPost';
-import ProtectedRoute from './components/ProtectedRoute';
+import Dashboard from './pages/admin/Dashboard';
+import Posts from './pages/admin/Posts';
+import PostCreate from './pages/admin/PostCreate';
+import PostEdit from './pages/admin/PostEdit';
+import Users from './pages/admin/Users';
+import Tags from './pages/admin/Tags';
+import Comments from './pages/admin/Comments';
 import './App.css';
 
 function App() {
   return (
-    <>
-      <Header />
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/posts/:slug" element={<PostDetails />} />
-          <Route path="/login" element={<Login />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/new" element={<CreatePost />} />
-            <Route path="/admin/edit/:id" element={<EditPost />} />
-          </Route>
-        </Routes>
-      </main>
-    </>
+    <Routes>
+      {/* Public pages — with simple header */}
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/posts/:slug" element={<PostDetails />} />
+        <Route path="/login" element={<Login />} />
+      </Route>
+
+      {/* Admin pages — with sidebar, all protected */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin/posts" element={<Posts />} />
+          <Route path="/admin/posts/new" element={<PostCreate />} />
+          <Route path="/admin/posts/edit/:id" element={<PostEdit />} />
+          <Route path="/admin/users" element={<Users />} />
+          <Route path="/admin/tags" element={<Tags />} />
+          <Route path="/admin/comments" element={<Comments />} />
+        </Route>
+      </Route>
+    </Routes>
   );
 }
 

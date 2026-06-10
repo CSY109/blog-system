@@ -1,5 +1,5 @@
-import { useState, useEffect, FormEvent } from 'react';
-import { Post } from '../services/api';
+import { useState, useEffect, type FormEvent } from 'react';
+import type { Post } from '../services/api';
 
 interface PostFormProps {
   onSubmit: (post: Omit<Post, 'id' | 'created_at' | 'updated_at'>) => void;

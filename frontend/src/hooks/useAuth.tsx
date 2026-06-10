@@ -1,11 +1,11 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, login as apiLogin, logout as apiLogout } from '../services/api';
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import { type User, login as apiLogin, logout as apiLogout } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (credentials: any) => Promise<void>;
+  login: (credentials: { username: string; password: string }) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -13,35 +13,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try { return JSON.parse(stored); } catch { return null; }
+    }
+    return null;
+  });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setToken(storedToken);
-      } catch (error) {
-        console.error('Failed to parse user from localStorage', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-      }
-    }
-  }, []);
-
-  const login = async (credentials: any) => {
-    try {
-      const data = await apiLogin(credentials);
-      setUser(data.user);
-      setToken(data.token);
-      navigate('/admin');
-    } catch (error) {
-      console.error('Login failed', error);
-      // You might want to show an error message to the user
-    }
+  const login = async (credentials: { username: string; password: string }) => {
+    const data = await apiLogin(credentials);
+    setUser(data.user);
+    setToken(data.token);
+    navigate('/admin');
   };
 
   const logout = () => {

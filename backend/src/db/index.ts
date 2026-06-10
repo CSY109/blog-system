@@ -1,24 +1,22 @@
-import sqlite3 from 'sqlite3';
-import { open, Database } from 'sqlite';
+import { DatabaseSync } from 'node:sqlite';
 import path from 'path';
+import dotenv from 'dotenv';
 
-let db: Database;
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
-export async function getDb() {
-  if (db) return db;
+const dbPath = process.env.DATABASE_URL || path.join(__dirname, '../../database.sqlite');
+const db = new DatabaseSync(dbPath);
 
-  db = await open({
-    filename: path.join(__dirname, '../../database.sqlite'),
-    driver: sqlite3.Database
-  });
+// Enable WAL mode for better concurrent performance
+db.exec('PRAGMA journal_mode = WAL');
+db.exec('PRAGMA foreign_keys = ON');
 
+export function getDb(): DatabaseSync {
   return db;
 }
 
-export async function initDb() {
-  const database = await getDb();
-
-  await database.exec(`
+export function initDb() {
+  db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,

@@ -4,33 +4,73 @@ import { authMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 
-// Get all posts (public)
-router.get('/', async (req, res) => {
-  const db = await getDb();
+// Get all posts (public) — with search and pagination
+router.get('/', (req, res) => {
+  const db = getDb();
   try {
-    const posts = await db.all('SELECT * FROM posts WHERE published_status = 1 ORDER BY created_at DESC');
-    res.json(posts);
+    const { search, page = '1', limit = '10' } = req.query as Record<string, string>;
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10));
+    const offset = (pageNum - 1) * limitNum;
+
+    let whereClause = "WHERE published_status = 1";
+    const params: any[] = [];
+
+    if (search && search.trim()) {
+      whereClause += " AND (title LIKE ? OR content LIKE ?)";
+      params.push(`%${search.trim()}%`, `%${search.trim()}%`);
+    }
+
+    const { cnt: total } = db.prepare(
+      `SELECT count(*) as cnt FROM posts ${whereClause}`
+    ).get(...params) as { cnt: number };
+
+    const posts = db.prepare(
+      `SELECT * FROM posts ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+    ).all(...params, limitNum, offset);
+
+    res.json({ data: posts, total, page: pageNum, limit: limitNum });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
 // Get all posts (admin - including unpublished)
-router.get('/admin', authMiddleware, async (req, res) => {
-  const db = await getDb();
+router.get('/admin', authMiddleware, (req, res) => {
+  const db = getDb();
   try {
-    const posts = await db.all('SELECT * FROM posts ORDER BY created_at DESC');
-    res.json(posts);
+    const { search, page = '1', limit = '10' } = req.query as Record<string, string>;
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10));
+    const offset = (pageNum - 1) * limitNum;
+
+    let whereClause = "WHERE 1=1";
+    const params: any[] = [];
+
+    if (search && search.trim()) {
+      whereClause += " AND (title LIKE ? OR content LIKE ? OR slug LIKE ?)";
+      params.push(`%${search.trim()}%`, `%${search.trim()}%`, `%${search.trim()}%`);
+    }
+
+    const { cnt: total } = db.prepare(
+      `SELECT count(*) as cnt FROM posts ${whereClause}`
+    ).get(...params) as { cnt: number };
+
+    const posts = db.prepare(
+      `SELECT * FROM posts ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+    ).all(...params, limitNum, offset);
+
+    res.json({ data: posts, total, page: pageNum, limit: limitNum });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
 // Get single post by slug (public)
-router.get('/:slug', async (req, res) => {
-  const db = await getDb();
+router.get('/:slug', (req, res) => {
+  const db = getDb();
   try {
-    const post = await db.get('SELECT * FROM posts WHERE slug = ?', [req.params.slug]);
+    const post = db.prepare('SELECT * FROM posts WHERE slug = ?').get(req.params.slug);
     if (!post) return res.status(404).json({ message: 'Post not found' });
     res.json(post);
   } catch (error) {
@@ -39,29 +79,27 @@ router.get('/:slug', async (req, res) => {
 });
 
 // Create post (admin)
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, (req, res) => {
   const { title, slug, content, published_status } = req.body;
-  const db = await getDb();
+  const db = getDb();
   try {
-    const result = await db.run(
-      'INSERT INTO posts (title, slug, content, published_status) VALUES (?, ?, ?, ?)',
-      [title, slug, content, published_status ? 1 : 0]
-    );
-    res.status(201).json({ id: result.lastID });
+    const result = db.prepare(
+      'INSERT INTO posts (title, slug, content, published_status) VALUES (?, ?, ?, ?)'
+    ).run(title, slug, content, published_status ? 1 : 0);
+    res.status(201).json({ id: result.lastInsertRowid });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
 // Update post (admin)
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, (req, res) => {
   const { title, slug, content, published_status } = req.body;
-  const db = await getDb();
+  const db = getDb();
   try {
-    await db.run(
-      'UPDATE posts SET title = ?, slug = ?, content = ?, published_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [title, slug, content, published_status ? 1 : 0, req.params.id]
-    );
+    db.prepare(
+      'UPDATE posts SET title = ?, slug = ?, content = ?, published_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    ).run(title, slug, content, published_status ? 1 : 0, req.params.id);
     res.json({ message: 'Post updated' });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
@@ -69,10 +107,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
 });
 
 // Delete post (admin)
-router.delete('/:id', authMiddleware, async (req, res) => {
-  const db = await getDb();
+router.delete('/:id', authMiddleware, (req, res) => {
+  const db = getDb();
   try {
-    await db.run('DELETE FROM posts WHERE id = ?', [req.params.id]);
+    db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
     res.json({ message: 'Post deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });

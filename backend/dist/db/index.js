@@ -5,25 +5,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDb = getDb;
 exports.initDb = initDb;
-const sqlite3_1 = __importDefault(require("sqlite3"));
-const sqlite_1 = require("sqlite");
+const node_sqlite_1 = require("node:sqlite");
 const path_1 = __importDefault(require("path"));
-const url_1 = require("url");
-const __filename = (0, url_1.fileURLToPath)(import.meta.url);
-const __dirname = path_1.default.dirname(__filename);
-let db;
-async function getDb() {
-    if (db)
-        return db;
-    db = await (0, sqlite_1.open)({
-        filename: path_1.default.join(__dirname, '../../database.sqlite'),
-        driver: sqlite3_1.default.Database
-    });
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config({ path: path_1.default.join(__dirname, '../.env') });
+const dbPath = process.env.DATABASE_URL || path_1.default.join(__dirname, '../../database.sqlite');
+const db = new node_sqlite_1.DatabaseSync(dbPath);
+// Enable WAL mode for better concurrent performance
+db.exec('PRAGMA journal_mode = WAL');
+db.exec('PRAGMA foreign_keys = ON');
+function getDb() {
     return db;
 }
-async function initDb() {
-    const database = await getDb();
-    await database.exec(`
+function initDb() {
+    db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,

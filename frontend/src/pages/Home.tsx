@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPosts, Post } from '../services/api';
+import { getPosts, type Post } from '../services/api';
 
 const Home = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -11,7 +11,7 @@ const Home = () => {
     const fetchPosts = async () => {
       try {
         const response = await getPosts();
-        setPosts(response.data);
+        setPosts(response.data.data);
       } catch (err) {
         setError('Failed to fetch posts.');
         console.error(err);

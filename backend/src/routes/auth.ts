@@ -8,10 +8,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key_here';
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const db = await getDb();
+  const db = getDb();
 
   try {
-    const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as any;
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });

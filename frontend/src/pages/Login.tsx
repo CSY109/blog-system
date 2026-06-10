@@ -1,24 +1,35 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await login({ username, password });
+    setError('');
+    setLoading(true);
+    try {
+      await login({ username, password });
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (isAuthenticated) {
-    return <Navigate to="/admin" />;
+    return <Navigate to="/admin" replace />;
   }
 
   return (
     <form onSubmit={handleSubmit}>
       <h2>Login</h2>
+      {error && <div className="form-error">{error}</div>}
       <div>
         <label htmlFor="username">Username</label>
         <input
@@ -39,7 +50,9 @@ const Login = () => {
           required
         />
       </div>
-      <button type="submit">Login</button>
+      <button type="submit" disabled={loading}>
+        {loading ? 'Logging in...' : 'Login'}
+      </button>
     </form>
   );
 };
