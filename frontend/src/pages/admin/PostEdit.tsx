@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PostForm from '../../components/PostForm';
 import { getAdminPosts, updatePost, type Post } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 
 const PostEdit = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ const PostEdit = () => {
   const handleSubmit = async (postData: any) => {
     if (!id) return;
     await updatePost(parseInt(id, 10), postData);
-    navigate('/admin/posts');
+    navigate(isAdmin ? '/admin/posts' : '/');
   };
 
   if (loading) return <div className="page-loading">Loading...</div>;

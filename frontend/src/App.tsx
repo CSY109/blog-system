@@ -18,15 +18,21 @@ import './App.css';
 function App() {
   return (
     <Routes>
-      {/* Public pages — with simple header */}
+      {/* Public + authenticated user pages — simple header */}
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/posts/:slug" element={<PostDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Any authenticated user can create/edit posts */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/new-post" element={<PostCreate />} />
+          <Route path="/edit-post/:id" element={<PostEdit />} />
+        </Route>
       </Route>
 
-      {/* Admin pages — with sidebar, all protected */}
+      {/* Admin pages — with sidebar, admin-only */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<Dashboard />} />

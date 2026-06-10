@@ -331,6 +331,16 @@ ul { list-style: none; padding: 0; }
   color: var(--color-primary);
 }
 
+/* ── Search keyword highlight ─────────────────────── */
+
+mark.search-highlight {
+  background: #fef08a;
+  color: #1e293b;
+  padding: 1px 3px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
 /* ═══════════════════════════════════════════════════════
    SKELETON LOADING
    ═══════════════════════════════════════════════════════ */

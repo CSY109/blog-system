@@ -27,6 +27,18 @@ function getExcerpt(html: string, maxLen = 120): string {
   return text.slice(0, maxLen).replace(/\s+\S*$/, '') + '…';
 }
 
+// Wrap keyword matches in <mark> tags, case-insensitive
+function highlightText(text: string, keyword: string): React.ReactNode {
+  if (!keyword.trim()) return text;
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  return parts.map((part, i) =>
+    part.toLowerCase() === keyword.toLowerCase()
+      ? <mark key={i} className="search-highlight">{part}</mark>
+      : part
+  );
+}
+
 const Home = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,8 +96,8 @@ const Home = () => {
       {/* Posts Section */}
       <section className="posts-section">
         <div className="posts-section-header">
-          <h2>{search ? `Results for "${search}"` : 'Latest Articles'}</h2>
-          {search && total > 0 && <span className="results-count">{total} article{total !== 1 ? 's' : ''} found</span>}
+          <h2>{search ? <span>Results for "<mark className="search-highlight">{search}</mark>"</span> : 'Latest Articles'}</h2>
+          {total > 0 && <span className="results-count">{total} article{total !== 1 ? 's' : ''}</span>}
         </div>
 
         {loading ? (
@@ -125,8 +137,12 @@ const Home = () => {
                     {!post.cover_image && <span className="post-card-category">Article</span>}
                   </div>
                   <div className="post-card-body">
-                    <h3 className="post-card-title">{post.title}</h3>
-                    <p className="post-card-excerpt">{getExcerpt(post.content)}</p>
+                    <h3 className="post-card-title">
+                      {search ? highlightText(post.title, search) : post.title}
+                    </h3>
+                    <p className="post-card-excerpt">
+                      {search ? highlightText(getExcerpt(post.content), search) : getExcerpt(post.content)}
+                    </p>
                     <div className="post-card-meta">
                       <span className="post-card-date">
                         {new Date(post.created_at).toLocaleDateString('en-US', {

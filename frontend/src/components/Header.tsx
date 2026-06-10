@@ -17,6 +17,7 @@ const Header = () => {
           <Link to="/" className="nav-link">Home</Link>
           {isAuthenticated ? (
             <>
+              <Link to="/new-post" className="nav-link" style={{ color: '#22c55e', fontWeight: 700 }}>+ New Post</Link>
               {isAdmin && <Link to="/admin" className="nav-link">Dashboard</Link>}
               <span className="nav-user">{user?.username}</span>
               <button onClick={logout} className="btn-logout-header">Logout</button>
