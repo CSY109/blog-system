@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import PostDetails from './pages/PostDetails';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/admin/Dashboard';
 import Posts from './pages/admin/Posts';
 import PostCreate from './pages/admin/PostCreate';
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/posts/:slug" element={<PostDetails />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Route>
 
       {/* Admin pages — with sidebar, all protected */}

@@ -16,7 +16,7 @@ async function seed() {
 
   try {
     db.prepare(
-      'INSERT OR IGNORE INTO users (username, password_hash) VALUES (?, ?)'
+      "INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, 'admin')"
     ).run(username, passwordHash);
     console.log(`Admin user seeded: ${username}`);
   } catch (error) {

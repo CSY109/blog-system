@@ -25,7 +25,7 @@ function seed() {
         const password = process.env.ADMIN_PASSWORD || 'password123';
         const passwordHash = yield bcryptjs_1.default.hash(password, 10);
         try {
-            db.prepare('INSERT OR IGNORE INTO users (username, password_hash) VALUES (?, ?)').run(username, passwordHash);
+            db.prepare("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, 'admin')").run(username, passwordHash);
             console.log(`Admin user seeded: ${username}`);
         }
         catch (error) {

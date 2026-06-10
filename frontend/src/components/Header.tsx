@@ -22,7 +22,10 @@ const Header = () => {
               <button onClick={logout} className="btn-logout-header">Logout</button>
             </>
           ) : (
-            <Link to="/login" className="nav-link nav-login">Sign In</Link>
+            <>
+              <Link to="/login" className="nav-link">Sign In</Link>
+              <Link to="/register" className="nav-link nav-login">Sign Up</Link>
+            </>
           )}
         </nav>
       </div>

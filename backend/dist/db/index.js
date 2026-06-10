@@ -11,7 +11,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({ path: path_1.default.join(__dirname, '../.env') });
 const dbPath = process.env.DATABASE_URL || path_1.default.join(__dirname, '../../database.sqlite');
 const db = new node_sqlite_1.DatabaseSync(dbPath);
-// Enable WAL mode for better concurrent performance
 db.exec('PRAGMA journal_mode = WAL');
 db.exec('PRAGMA foreign_keys = ON');
 function getDb() {
@@ -23,6 +22,7 @@ function initDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
       password_hash TEXT,
+      role TEXT DEFAULT 'user',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -61,12 +61,16 @@ function initDb() {
       FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
     );
   `);
-    // Add image_url column if missing (migration for existing DBs)
+    // Migrations for existing DBs
+    try {
+        db.exec('ALTER TABLE users ADD COLUMN role TEXT DEFAULT \'user\'');
+    }
+    catch (e) { /* ok */ }
     try {
         db.exec('ALTER TABLE comments ADD COLUMN image_url TEXT');
     }
-    catch (e) {
-        // Column already exists — ignore
-    }
+    catch (e) { /* ok */ }
+    // Ensure existing admin user keeps admin role
+    db.prepare("UPDATE users SET role = 'admin' WHERE username = ? AND (role IS NULL OR role != 'admin')").run(process.env.ADMIN_USERNAME || 'admin');
     console.log('Database initialized');
 }

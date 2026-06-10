@@ -1,6 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getPostBySlug, getPostComments, submitComment, type Post, type Comment } from '../services/api';
+import {
+  getPostBySlug,
+  getPostComments,
+  submitComment,
+  uploadImage,
+  type Post,
+  type Comment,
+} from '../services/api';
 
 const avatarColors = ['#667eea', '#f5576c', '#4facfe', '#43e97b', '#fa709a', '#a18cd1', '#f093fb', '#00f2fe'];
 
@@ -18,6 +25,8 @@ function getAvatarColor(name: string): string {
   return avatarColors[Math.abs(hash) % avatarColors.length];
 }
 
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 const PostDetails = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<Post | null>(null);
@@ -28,9 +37,11 @@ const PostDetails = () => {
   // Comment form
   const [authorName, setAuthorName] = useState('');
   const [commentContent, setCommentContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [commentMsg, setCommentMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchComments = useCallback(async () => {
     if (!slug) return;
@@ -59,21 +70,65 @@ const PostDetails = () => {
     fetchComments();
   }, [slug, fetchComments]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setCommentMsg('Only JPEG, PNG, GIF, and WebP images are allowed.');
+      return;
+    }
+
+    // Validate size
+    if (file.size > MAX_IMAGE_SIZE) {
+      setCommentMsg('Image must be under 5 MB.');
+      return;
+    }
+
+    setCommentMsg('');
+    setImageFile(file);
+
+    // Preview
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!post || !authorName.trim() || !commentContent.trim()) return;
     setSubmitting(true);
     setCommentMsg('');
+
     try {
+      let imageUrl: string | undefined;
+
+      // Upload image first if selected
+      if (imageFile) {
+        const uploadResult = await uploadImage(imageFile);
+        imageUrl = uploadResult.url;
+      }
+
       await submitComment({
         post_id: post.id,
         author_name: authorName.trim(),
         content: commentContent.trim(),
-        image_url: imageUrl.trim() || undefined,
-      } as any);
+        image_url: imageUrl,
+      });
+
       setAuthorName('');
       setCommentContent('');
-      setImageUrl('');
+      setImageFile(null);
+      setImagePreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       setCommentMsg('✓ Comment submitted for review. It will appear once approved.');
     } catch (err) {
       setCommentMsg('Failed to submit comment.');
@@ -99,10 +154,8 @@ const PostDetails = () => {
 
   return (
     <div className="post-detail-page">
-      {/* Back link */}
       <Link to="/" className="back-link">← Back to articles</Link>
 
-      {/* Article header */}
       <article className="post-detail-article">
         <header className="post-detail-header">
           <div className="post-detail-badge">Article</div>
@@ -135,7 +188,7 @@ const PostDetails = () => {
         </div>
       </article>
 
-      {/* Comments Section */}
+      {/* Comments */}
       <section className="comments-section">
         <h2 className="comments-title">
           <span className="comments-icon">💬</span>
@@ -197,17 +250,21 @@ const PostDetails = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="image-url">Image URL (optional)</label>
+                <label htmlFor="image-upload">Attach Image (optional)</label>
                 <input
-                  id="image-url"
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
+                  id="image-upload"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleFileChange}
+                  style={{ padding: '8px' }}
                 />
-                {imageUrl && (
+                {imagePreview && (
                   <div className="image-preview">
-                    <img src={imageUrl} alt="preview" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <img src={imagePreview} alt="Preview" />
+                    <button type="button" className="btn btn-sm btn-danger" onClick={handleRemoveImage} style={{ marginTop: 6 }}>
+                      ✕ Remove
+                    </button>
                   </div>
                 )}
               </div>
@@ -224,7 +281,7 @@ const PostDetails = () => {
               />
             </div>
             <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Submitting…' : 'Post Comment'}
+              {submitting ? (imageFile ? 'Uploading & submitting…' : 'Submitting…') : 'Post Comment'}
             </button>
             {commentMsg && (
               <p className={`comment-msg ${commentMsg.startsWith('✓') ? 'success' : 'error'}`}>

@@ -68,6 +68,11 @@ export interface Stats {
   recentComments: Comment[];
 }
 
+export interface RegisterData {
+  username: string;
+  password: string;
+}
+
 // ── Auth ────────────────────────────────────────────────
 
 export const login = async (credentials: { username: string; password: string }) => {
@@ -76,6 +81,11 @@ export const login = async (credentials: { username: string; password: string })
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.user));
   }
+  return response.data;
+};
+
+export const register = async (data: RegisterData) => {
+  const response = await api.post('/auth/register', data);
   return response.data;
 };
 
@@ -139,8 +149,19 @@ export const getComments = (params?: { post_id?: number; status?: string }) =>
 export const getPostComments = (slug: string) =>
   api.get<Comment[]>(`/comments/post/${slug}`);
 
-export const submitComment = (data: { post_id: number; author_name: string; content: string }) =>
+export const submitComment = (data: { post_id: number; author_name: string; content: string; image_url?: string }) =>
   api.post('/comments', data);
+
+// ── Upload ──────────────────────────────────────────────
+
+export const uploadImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const response = await api.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data as { url: string };
+};
 
 export const updateCommentStatus = (id: number, status: string) =>
   api.put(`/admin/comments/${id}`, { status });
