@@ -31,6 +31,7 @@ function initDb() {
       title TEXT,
       slug TEXT UNIQUE,
       content TEXT,
+      cover_image TEXT,
       published_status BOOLEAN DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -68,6 +69,10 @@ function initDb() {
     catch (e) { /* ok */ }
     try {
         db.exec('ALTER TABLE comments ADD COLUMN image_url TEXT');
+    }
+    catch (e) { /* ok */ }
+    try {
+        db.exec('ALTER TABLE posts ADD COLUMN cover_image TEXT');
     }
     catch (e) { /* ok */ }
     // Ensure existing admin user keeps admin role

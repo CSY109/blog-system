@@ -66,10 +66,10 @@ router.get('/:slug', (req, res) => {
 });
 // Create post (admin)
 router.post('/', auth_1.authMiddleware, (req, res) => {
-    const { title, slug, content, published_status } = req.body;
+    const { title, slug, content, cover_image, published_status } = req.body;
     const db = (0, index_1.getDb)();
     try {
-        const result = db.prepare('INSERT INTO posts (title, slug, content, published_status) VALUES (?, ?, ?, ?)').run(title, slug, content, published_status ? 1 : 0);
+        const result = db.prepare('INSERT INTO posts (title, slug, content, cover_image, published_status) VALUES (?, ?, ?, ?, ?)').run(title, slug, content, cover_image || null, published_status ? 1 : 0);
         res.status(201).json({ id: result.lastInsertRowid });
     }
     catch (error) {
@@ -78,10 +78,10 @@ router.post('/', auth_1.authMiddleware, (req, res) => {
 });
 // Update post (admin)
 router.put('/:id', auth_1.authMiddleware, (req, res) => {
-    const { title, slug, content, published_status } = req.body;
+    const { title, slug, content, cover_image, published_status } = req.body;
     const db = (0, index_1.getDb)();
     try {
-        db.prepare('UPDATE posts SET title = ?, slug = ?, content = ?, published_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(title, slug, content, published_status ? 1 : 0, req.params.id);
+        db.prepare('UPDATE posts SET title = ?, slug = ?, content = ?, cover_image = COALESCE(?, cover_image), published_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(title, slug, content, cover_image || null, published_status ? 1 : 0, req.params.id);
         res.json({ message: 'Post updated' });
     }
     catch (error) {

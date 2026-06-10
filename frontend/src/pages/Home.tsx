@@ -117,9 +117,12 @@ const Home = () => {
                 <Link to={`/posts/${post.slug}`} key={post.id} className="post-card">
                   <div
                     className="post-card-image"
-                    style={{ background: categoryColors[i % categoryColors.length] }}
+                    style={post.cover_image
+                      ? { backgroundImage: `url(${post.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                      : { background: categoryColors[i % categoryColors.length] }
+                    }
                   >
-                    <span className="post-card-category">Article</span>
+                    {!post.cover_image && <span className="post-card-category">Article</span>}
                   </div>
                   <div className="post-card-body">
                     <h3 className="post-card-title">{post.title}</h3>

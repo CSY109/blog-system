@@ -1,21 +1,17 @@
 import { useNavigate } from 'react-router-dom';
 import PostForm from '../../components/PostForm';
-import { createPost, type Post } from '../../services/api';
+import { createPost } from '../../services/api';
 
 const PostCreate = () => {
   const navigate = useNavigate();
 
-  const handleSubmit = async (post: Omit<Post, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      await createPost(post);
-      navigate('/admin/posts');
-    } catch (err) {
-      console.error('Failed to create post', err);
-    }
+  const handleSubmit = async (postData: any) => {
+    await createPost(postData);
+    navigate('/admin/posts');
   };
 
   return (
-    <div className="page">
+    <div className="page" style={{ maxWidth: 860, margin: '0 auto' }}>
       <PostForm onSubmit={handleSubmit} />
     </div>
   );

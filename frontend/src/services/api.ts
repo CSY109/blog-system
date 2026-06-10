@@ -21,6 +21,7 @@ export interface Post {
   title: string;
   slug: string;
   content: string;
+  cover_image?: string;
   published_status: boolean;
   created_at: string;
   updated_at: string;
@@ -36,6 +37,7 @@ export interface PaginatedResponse<T> {
 export interface User {
   id: number;
   username: string;
+  role?: string;
   created_at: string;
 }
 

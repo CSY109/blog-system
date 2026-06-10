@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (credentials: { username: string; password: string }) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,7 +28,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const data = await apiLogin(credentials);
     setUser(data.user);
     setToken(data.token);
-    navigate('/admin');
+    // Admin users go to dashboard, regular users go to home
+    if (data.user?.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
   };
 
   const logout = () => {
@@ -38,9 +44,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isAuthenticated = !!token;
+  const isAdmin = !!user && user.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

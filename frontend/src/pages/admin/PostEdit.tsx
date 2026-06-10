@@ -12,33 +12,24 @@ const PostEdit = () => {
 
   useEffect(() => {
     if (!id) return;
-    const fetchPost = async () => {
+    (async () => {
       try {
         const response = await getAdminPosts(undefined, 1, 100);
-        const postToEdit = response.data.data.find((p) => p.id === parseInt(id, 10));
-        if (postToEdit) {
-          setPost(postToEdit);
-        } else {
-          setError('Post not found.');
-        }
+        const found = response.data.data.find((p) => p.id === parseInt(id, 10));
+        if (found) setPost(found);
+        else setError('Post not found.');
       } catch (err) {
         setError('Failed to fetch post.');
-        console.error(err);
       } finally {
         setLoading(false);
       }
-    };
-    fetchPost();
+    })();
   }, [id]);
 
-  const handleSubmit = async (updatedPostData: Omit<Post, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleSubmit = async (postData: any) => {
     if (!id) return;
-    try {
-      await updatePost(parseInt(id, 10), updatedPostData);
-      navigate('/admin/posts');
-    } catch (err) {
-      console.error('Failed to update post', err);
-    }
+    await updatePost(parseInt(id, 10), postData);
+    navigate('/admin/posts');
   };
 
   if (loading) return <div className="page-loading">Loading...</div>;
@@ -46,8 +37,8 @@ const PostEdit = () => {
   if (!post) return <div className="page-error">Post not found.</div>;
 
   return (
-    <div className="page">
-      <PostForm onSubmit={handleSubmit} initialPost={post} isEditing={true} />
+    <div className="page" style={{ maxWidth: 860, margin: '0 auto' }}>
+      <PostForm onSubmit={handleSubmit} initialPost={post} isEditing />
     </div>
   );
 };

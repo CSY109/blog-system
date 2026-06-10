@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, isAdmin, user, logout } = useAuth();
   const location = useLocation();
   const isHome = location.pathname === '/';
 
@@ -17,7 +17,7 @@ const Header = () => {
           <Link to="/" className="nav-link">Home</Link>
           {isAuthenticated ? (
             <>
-              <Link to="/admin" className="nav-link">Dashboard</Link>
+              {isAdmin && <Link to="/admin" className="nav-link">Dashboard</Link>}
               <span className="nav-user">{user?.username}</span>
               <button onClick={logout} className="btn-logout-header">Logout</button>
             </>

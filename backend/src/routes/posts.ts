@@ -80,12 +80,12 @@ router.get('/:slug', (req, res) => {
 
 // Create post (admin)
 router.post('/', authMiddleware, (req, res) => {
-  const { title, slug, content, published_status } = req.body;
+  const { title, slug, content, cover_image, published_status } = req.body;
   const db = getDb();
   try {
     const result = db.prepare(
-      'INSERT INTO posts (title, slug, content, published_status) VALUES (?, ?, ?, ?)'
-    ).run(title, slug, content, published_status ? 1 : 0);
+      'INSERT INTO posts (title, slug, content, cover_image, published_status) VALUES (?, ?, ?, ?, ?)'
+    ).run(title, slug, content, cover_image || null, published_status ? 1 : 0);
     res.status(201).json({ id: result.lastInsertRowid });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
@@ -94,12 +94,12 @@ router.post('/', authMiddleware, (req, res) => {
 
 // Update post (admin)
 router.put('/:id', authMiddleware, (req, res) => {
-  const { title, slug, content, published_status } = req.body;
+  const { title, slug, content, cover_image, published_status } = req.body;
   const db = getDb();
   try {
     db.prepare(
-      'UPDATE posts SET title = ?, slug = ?, content = ?, published_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).run(title, slug, content, published_status ? 1 : 0, req.params.id);
+      'UPDATE posts SET title = ?, slug = ?, content = ?, cover_image = COALESCE(?, cover_image), published_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    ).run(title, slug, content, cover_image || null, published_status ? 1 : 0, req.params.id);
     res.json({ message: 'Post updated' });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
